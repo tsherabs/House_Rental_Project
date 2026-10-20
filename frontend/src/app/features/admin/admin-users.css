@@ -1,0 +1,41 @@
+.table-scroll {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+caption {
+  text-align: left;
+  font-weight: 700;
+  padding: 0.5rem;
+}
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.8rem;
+  border-bottom: 1px solid #d5dfd8;
+  overflow-wrap: anywhere;
+}
+th {
+  background: #e6eee5;
+}
+.status-editor {
+  margin-bottom: 1rem;
+}
+.status-editor form {
+  display: grid;
+  gap: 1rem;
+}
+textarea {
+  font: inherit;
+  width: 100%;
+  padding: 0.7rem;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
