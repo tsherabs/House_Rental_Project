@@ -1,11 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { App } from './app';
+import { provideHttpClient } from '@angular/common/http';
 describe('App', () => {
   it('provides a browse link and accessible content target', async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), provideHttpClient()],
     }).compileComponents();
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
