@@ -45,3 +45,14 @@ The feature branches are stacked and must merge in order; each subsequent PR sho
 4. `codex/m2-integration-checks` → `codex/m2-admin-users`: shared session edge-case tests/refinements, formatting and final integration documentation. This final branch contains the complete implementation.
 
 Focused handoffs: `M2-auth-handoff.md`, `M2-landlord-handoff.md`, `M2-admin-handoff.md`. No issue numbers or reviewer identities were supplied. Branch publication and actual PR creation status must be reported from tool results, not inferred from prepared descriptions.
+
+## Published review artifacts
+
+All four branches were pushed. Draft PRs were created through the GitHub API using the repository's existing authentication (no credentials were printed):
+
+- Auth: https://github.com/tsherabs/House_Rental_Project/pull/2
+- Landlord: https://github.com/tsherabs/House_Rental_Project/pull/3
+- Admin users: https://github.com/tsherabs/House_Rental_Project/pull/4
+- Integration checks/final handoff: https://github.com/tsherabs/House_Rental_Project/pull/5
+
+The first attempt to submit the admin PR stalled. A read-only query confirmed only the first two PRs existed; a bounded retry created the remaining two without duplicates. No PR was merged and no teammate review/CI outcome is claimed.
