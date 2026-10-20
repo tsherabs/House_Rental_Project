@@ -2,6 +2,8 @@
 
 M1's initial Angular browsing/details slice is in `frontend/`. See [frontend setup](frontend/README.md) and [M1 integration handoff](docs/M1-handoff.md).
 
+M2's authentication, landlord property/photo management and administrator account interfaces are implemented in the same Angular app. See [M2 handoff, verification and remaining dependencies](docs/M2-handoff.md). M4 viewing/moderation interfaces remain pending their contracts; live full-stack verification is still required.
+
 M3's Express backend is now implemented in `backend/`, with PostgreSQL migrations
 in `database/migrations/`. See [backend setup](backend/README.md),
 [M3 handoff and test evidence](docs/M3-handoff.md), and the
