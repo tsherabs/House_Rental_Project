@@ -1,5 +1,7 @@
 # House Rental Web Application
 
+M1's initial Angular browsing/details slice is now in `frontend/`. See [frontend setup](frontend/README.md) and [M1 integration handoff](docs/M1-handoff.md). The backend and proposed contracts still require team integration; the planning material below describes the broader project.
+
 > **Project status:** Planning / initial setup  
 > **Team:** 5 members — 2 frontend, 2 backend, 1 DevOps  
 > **Goal:** Build and deploy a web application where landlords advertise rental properties and seekers find properties and request viewings, while practising collaborative development, Scrum, testing, containerization, and CI/CD.
