@@ -1,7 +1,12 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+import { AuthService } from './core/auth/auth.service';
+import { sessionInterceptor } from './core/auth/session.interceptor';
 import { routes } from './app.routes';
 export const appConfig: ApplicationConfig = {
-  providers: [provideBrowserGlobalErrorListeners(), provideHttpClient(), provideRouter(routes)],
+  providers: [provideBrowserGlobalErrorListeners(), provideHttpClient(withXhr(), withInterceptors([sessionInterceptor])), provideRouter(routes),
+    provideAppInitializer(() => firstValueFrom(inject(AuthService).refresh())),
+  ],
 };

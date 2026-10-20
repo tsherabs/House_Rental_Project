@@ -2,6 +2,12 @@
 <nav class="site-nav" aria-label="Main navigation">
   <a routerLink="/properties" class="brand">Thimphu HomeFinder</a
   ><a routerLink="/properties">Browse homes</a>
+  @if (auth.user(); as user) {
+    @if (user.role === 'landlord') { <a routerLink="/my-properties">My properties</a> }
+    @if (user.role === 'admin') { <a routerLink="/admin">Administration</a> }
+    <span>{{ user.name }}</span><button type="button" [disabled]="signingOut()" (click)="logout()">{{ signingOut() ? 'Signing out…' : 'Sign out' }}</button>
+  } @else { <a routerLink="/login">Sign in</a><a routerLink="/register">Register</a> }
 </nav>
+@if (logoutError()) { <p role="alert">{{ logoutError() }}</p> }
 <main id="main" tabindex="-1"><router-outlet /></main>
 <footer>Find your next home in Thimphu · Prices in Bhutanese Ngultrum (BTN)</footer>
