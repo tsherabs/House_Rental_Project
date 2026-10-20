@@ -1,8 +1,16 @@
 # House Rental Web Application
 
-M1's initial Angular browsing/details slice is now in `frontend/`. See [frontend setup](frontend/README.md) and [M1 integration handoff](docs/M1-handoff.md). The backend and proposed contracts still require team integration; the planning material below describes the broader project.
+M1's initial Angular browsing/details slice is in `frontend/`. See [frontend setup](frontend/README.md) and [M1 integration handoff](docs/M1-handoff.md).
 
-> **Project status:** Planning / initial setup  
+M3's Express backend is now implemented in `backend/`, with PostgreSQL migrations
+in `database/migrations/`. See [backend setup](backend/README.md),
+[M3 handoff and test evidence](docs/M3-handoff.md), and the
+[OpenAPI contract](docs/api.yaml). The team-approved M3 baseline is recorded in
+[the backend decision](docs/decisions/0001-m3-baseline.md); it supersedes the
+illustrative authentication/schema examples in the original planning material
+below. Frontend integration, M4 modules and Docker/deployment remain outstanding.
+
+> **Project status:** M1 browsing UI and M3 backend implemented; team integration pending
 > **Team:** 5 members — 2 frontend, 2 backend, 1 DevOps  
 > **Goal:** Build and deploy a web application where landlords advertise rental properties and seekers find properties and request viewings, while practising collaborative development, Scrum, testing, containerization, and CI/CD.
 
