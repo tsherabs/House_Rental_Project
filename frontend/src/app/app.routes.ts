@@ -22,5 +22,8 @@ export const routes: Routes = [
   { path: 'login', loadComponent: () => import('./features/auth/auth-page').then(m => m.AuthPage) },
   { path: 'register', data: { register: true }, loadComponent: () => import('./features/auth/auth-page').then(m => m.AuthPage) },
   { path: 'forbidden', component: Forbidden },
+  { path: 'my-properties', canActivate: [roleGuard], data: { roles: ['landlord'] }, loadComponent: () => import('./features/landlord/landlord-dashboard').then(m => m.LandlordDashboard) },
+  { path: 'my-properties/new', canActivate: [roleGuard], data: { roles: ['landlord'] }, loadComponent: () => import('./features/landlord/property-editor').then(m => m.PropertyEditor) },
+  { path: 'my-properties/:id/edit', canActivate: [roleGuard], data: { roles: ['landlord'] }, loadComponent: () => import('./features/landlord/property-editor').then(m => m.PropertyEditor) },
   { path: '**', component: NotFound },
 ];
