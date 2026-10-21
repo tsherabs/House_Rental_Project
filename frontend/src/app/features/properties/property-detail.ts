@@ -5,10 +5,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, combineLatest, catchError, of, switchMap, tap } from 'rxjs';
 import { PropertyService } from './property.service';
 import { Property } from './property';
+import { PropertyActions } from '../community/property-actions';
 
 @Component({
   selector: 'app-property-detail',
-  imports: [CurrencyPipe, DatePipe, RouterLink],
+  imports: [CurrencyPipe, DatePipe, RouterLink, PropertyActions],
   template: ` <a routerLink="/properties" [queryParams]="route.snapshot.queryParams"
       >← Back to homes</a
     >
@@ -63,6 +64,8 @@ import { Property } from './property';
           <p>Monthly rent</p>
           <strong>{{ home.monthlyRent | currency: 'BTN' : 'Nu. ' : '1.2-2' }}</strong>
           <p>Deposit: {{ home.deposit | currency: 'BTN' : 'Nu. ' : '1.2-2' }}</p>
+          <hr />
+          <app-property-actions [propertyId]="home.id" />
         </aside>
       </section>
     }`,

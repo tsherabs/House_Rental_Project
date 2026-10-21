@@ -1,5 +1,5 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -18,12 +18,40 @@ import { PropertyCard } from './property-card';
 
 @Component({
   selector: 'app-property-list',
-  imports: [ReactiveFormsModule, PropertyCard],
-  template: ` <header>
-      <p class="eyebrow">THIMPHU HOMEFINDER</p>
-      <h1>Find a place to call home.</h1>
-      <p>Explore rental homes across Thimphu.</p>
+  imports: [ReactiveFormsModule, PropertyCard, RouterLink],
+  template: ` <header class="browse-hero">
+      <div class="hero-copy">
+        <p class="eyebrow">ROOTED IN THIMPHU. MADE FOR YOU.</p>
+        <h1>A new chapter.<br /><em>A place to call home.</em></h1>
+        <p>
+          From quiet hillside apartments to a home near the heart of the city. Find your space in
+          Thimphu.
+        </p>
+        <a class="button-link" routerLink="/properties" fragment="find-homes"
+          >Explore available homes <span aria-hidden="true">↗</span></a
+        >
+        <div class="hero-notes">
+          <span>Local neighbourhoods</span><span>Viewings made simple</span>
+        </div>
+      </div>
+      <figure class="hero-photo">
+        <img
+          src="/images/thimphu-home.webp"
+          alt="Illustration of a Bhutanese home overlooking a green mountain valley"
+          fetchpriority="high"
+          width="1440"
+          height="960"
+        />
+        <figcaption>At home in the valley <small>Illustrative image</small></figcaption>
+      </figure>
     </header>
+    <div class="section-heading" id="find-homes">
+      <div>
+        <p class="eyebrow">FIND YOUR CORNER OF THE CITY</p>
+        <h2>Homes worth coming home to.</h2>
+      </div>
+      <span>Thimphu, Bhutan</span>
+    </div>
     <form [formGroup]="form" (ngSubmit)="apply()" class="filters" aria-label="Filter properties">
       <label
         >Neighbourhood<input

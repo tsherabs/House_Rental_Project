@@ -1,6 +1,8 @@
 <a class="skip-link" href="#main">Skip to content</a>
 <nav class="site-nav" aria-label="Main navigation">
-  <a routerLink="/properties" class="brand">Thimphu HomeFinder</a
+  <a routerLink="/properties" class="brand"
+    ><span class="brand-mark" aria-hidden="true">⌂</span> Thimphu
+    <span class="brand-light">HomeFinder</span></a
   ><a routerLink="/properties">Browse homes</a>
   @if (auth.user(); as user) {
     @if (user.role === 'landlord') {
@@ -9,12 +11,18 @@
     @if (user.role === 'admin') {
       <a routerLink="/admin">Administration</a>
     }
+    @if (user.role === 'seeker') {
+      <a routerLink="/favourites">Favourites</a>
+    }
+    @if (user.role === 'seeker' || user.role === 'landlord') {
+      <a routerLink="/viewings">My viewings</a>
+    }
     <span>{{ user.name }}</span
     ><button type="button" [disabled]="signingOut()" (click)="logout()">
       {{ signingOut() ? 'Signing out…' : 'Sign out' }}
     </button>
   } @else {
-    <a routerLink="/login">Sign in</a><a routerLink="/register">Register</a>
+    <a routerLink="/login">Sign in</a><a routerLink="/register" class="button-link">Get started</a>
   }
 </nav>
 @if (logoutError()) {

@@ -16,6 +16,10 @@ import { Pagination } from '../../shared/pagination';
       <p class="eyebrow">LANDLORD WORKSPACE</p>
       <h1>My properties</h1>
       <a routerLink="/my-properties/new">Add a property</a>
+      <div class="actions">
+        <a routerLink="/viewings">Viewing requests →</a
+        ><a routerLink="/my-properties/expiring">Confirm expiring listings →</a>
+      </div>
     </header>
     @if (loading()) {
       <p role="status">Loading your properties…</p>
@@ -32,6 +36,9 @@ import { Pagination } from '../../shared/pagination';
       <section class="property-grid" aria-label="Your properties">
         @for (property of page.data; track property.id) {
           <article class="card card-body">
+            @if (property.images.length) {
+              <img class="dashboard-photo" [src]="property.images[0].url" [alt]="property.title" />
+            }
             <h2>{{ property.title }}</h2>
             <p>{{ property.neighbourhood }}</p>
             <strong>{{ property.monthlyRent | currency: 'BTN' : 'Nu. ' : '1.2-2' }} / month</strong>
