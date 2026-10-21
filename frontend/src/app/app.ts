@@ -2,8 +2,10 @@ import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService } from './core/auth/auth.service';
+import { ComparisonService } from './features/properties/comparison.service';
 @Component({ selector: 'app-root', imports: [RouterLink, RouterOutlet], templateUrl: './app.html' })
 export class App {
+  readonly compare = inject(ComparisonService);
   readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   readonly signingOut = signal(false);

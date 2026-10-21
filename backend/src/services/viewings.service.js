@@ -2,6 +2,7 @@ import { transaction } from '../db/pool.js';
 import { PUBLIC_PROPERTY } from '../db/queries.js';
 import { pagination } from '../middleware/validate.js';
 import { ApiError, notFound, conflict } from '../utils/errors.js';
+import { notify } from './notifications.service.js';
 
 const select = `SELECT v.*, p.title AS property_title, p.owner_id
   FROM viewing_requests v JOIN properties p ON p.id=v.property_id`;
@@ -32,6 +33,7 @@ export function viewingsService(pool) {
         const { rows: [row] } = await db.query(`INSERT INTO viewing_requests(property_id,seeker_id,proposed_at,message)
           VALUES($1,$2,$3,$4) RETURNING *`, [body.propertyId, seekerId, body.proposedAt, body.message ?? null]);
         await history(db, row.id, null, 'pending', seekerId);
+        await notify(db, property.owner_id, 'viewing_requested', 'A new viewing request', 'A seeker requested a visit. Open your viewings to review the date and message.', '/viewings');
         return viewingDto({ ...row, property_title: property.title });
       });
     },
@@ -65,6 +67,8 @@ export function viewingsService(pool) {
         if (!allowed.includes(row.status)) throw conflict('This viewing can no longer make that status transition');
         const { rows: [updated] } = await db.query('UPDATE viewing_requests SET status=$2,updated_at=now() WHERE id=$1 RETURNING *', [id, status]);
         await history(db, id, row.status, status, user.id);
+        await notify(db, status === 'cancelled' ? row.owner_id : row.seeker_id,
+          `viewing_${status}`, `Viewing ${status}`, 'A viewing request changed status. Open your viewings for the full history.', '/viewings');
         return viewingDto({ ...updated, property_title: row.property_title });
       });
     },

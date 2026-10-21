@@ -3,6 +3,7 @@ import { PUBLIC_PROPERTY } from '../db/queries.js';
 import { pagination } from '../middleware/validate.js';
 import { propertiesService, lockOwnedProperty } from './properties.service.js';
 import { notFound, conflict } from '../utils/errors.js';
+import { notify } from './notifications.service.js';
 
 const favouriteDto = (f) => ({ propertyId: f.property_id, createdAt: f.created_at });
 const reportDto = (r) => ({
@@ -79,6 +80,7 @@ export function communityService(pool) {
         if (row.review_status !== 'pending') throw conflict('This report has already been reviewed');
         const { rows: [updated] } = await db.query(`UPDATE listing_reports SET review_status=$2,review_reason=$3,
           reviewed_by=$4,reviewed_at=now() WHERE id=$1 RETURNING *`, [id, reviewStatus, reviewReason, userId]);
+        await notify(db, row.reporter_id, 'report_reviewed', 'Your listing report was reviewed', `An administrator marked your report ${reviewStatus}. Thank you for helping keep listings accurate.`, '/properties');
         return reportDto(updated);
       });
     },
@@ -91,6 +93,7 @@ export function communityService(pool) {
         await db.query('UPDATE properties SET visibility_status=$2,updated_at=now() WHERE id=$1', [id, visibilityStatus]);
         await db.query(`INSERT INTO property_visibility_history(property_id,old_status,new_status,changed_by,reason)
           VALUES($1,$2,$3,$4,$5)`, [id, row.visibility_status, visibilityStatus, userId, reason]);
+        await notify(db, row.owner_id, 'listing_moderated', 'Listing visibility updated', `An administrator changed a listing to ${visibilityStatus}. Review your properties for its current status.`, '/my-properties');
         return properties.get(id, row.owner_id, db);
       });
     },

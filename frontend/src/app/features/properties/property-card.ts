@@ -2,10 +2,11 @@ import { Component, input } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Property } from './property';
+import { CompareButton } from './compare-button';
 
 @Component({
   selector: 'app-property-card',
-  imports: [CurrencyPipe, RouterLink],
+  imports: [CurrencyPipe, RouterLink, CompareButton],
   template: ` <article class="card property-card">
     @if (property().images.length) {
       <img
@@ -34,6 +35,7 @@ import { Property } from './property';
         {{ property().parkingAvailable ? 'Parking' : 'No parking' }}
       </p>
       <span class="badge">{{ property().availabilityStatus }}</span>
+      <div class="compare-action"><app-compare-button [propertyId]="property().id" [title]="property().title" /></div>
     </div>
   </article>`,
 })

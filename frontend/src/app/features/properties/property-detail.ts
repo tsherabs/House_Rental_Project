@@ -6,10 +6,12 @@ import { BehaviorSubject, combineLatest, catchError, of, switchMap, tap } from '
 import { PropertyService } from './property.service';
 import { Property } from './property';
 import { PropertyActions } from '../community/property-actions';
+import { CompareButton } from './compare-button';
+import { MoveInCost } from './move-in-cost';
 
 @Component({
   selector: 'app-property-detail',
-  imports: [CurrencyPipe, DatePipe, RouterLink, PropertyActions],
+  imports: [CurrencyPipe, DatePipe, RouterLink, PropertyActions, CompareButton, MoveInCost],
   template: ` <a routerLink="/properties" [queryParams]="route.snapshot.queryParams"
       >← Back to homes</a
     >
@@ -64,10 +66,12 @@ import { PropertyActions } from '../community/property-actions';
           <p>Monthly rent</p>
           <strong>{{ home.monthlyRent | currency: 'BTN' : 'Nu. ' : '1.2-2' }}</strong>
           <p>Deposit: {{ home.deposit | currency: 'BTN' : 'Nu. ' : '1.2-2' }}</p>
+          <app-compare-button [propertyId]="home.id" [title]="home.title" />
           <hr />
           <app-property-actions [propertyId]="home.id" />
         </aside>
       </section>
+      <app-move-in-cost [rent]="home.monthlyRent" [deposit]="home.deposit" />
     }`,
 })
 export class PropertyDetail {

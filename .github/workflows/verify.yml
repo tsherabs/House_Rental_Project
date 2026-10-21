@@ -1,0 +1,42 @@
+name: Verify platform
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: homefinder
+          POSTGRES_PASSWORD: ci-test-only
+          POSTGRES_DB: homefinder_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U homefinder -d homefinder_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://homefinder:ci-test-only@localhost:5432/homefinder_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      - run: npm ci
+        working-directory: backend
+      - run: npm run lint && npm run check:api && npm test
+        working-directory: backend
+      - run: npm ci
+        working-directory: frontend
+      - run: npm test -- --watch=false && npm run build
+        working-directory: frontend
+      - run: docker build -f backend/Dockerfile . && docker build -f frontend/Dockerfile .

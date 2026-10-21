@@ -13,6 +13,9 @@ class NotFound {}
 })
 class Forbidden {}
 export const routes: Routes = [
+  { path: 'compare', loadComponent: () => import('./features/properties/comparison-page').then((m) => m.ComparisonPage) },
+  { path: 'notifications', canActivate: [roleGuard], data: { roles: ['seeker', 'landlord', 'admin'] },
+    loadComponent: () => import('./features/community/notifications-page').then((m) => m.NotificationsPage) },
   {
     path: 'viewings',
     canActivate: [roleGuard],

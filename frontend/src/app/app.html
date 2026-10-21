@@ -4,7 +4,9 @@
     ><span class="brand-mark" aria-hidden="true">⌂</span> Thimphu
     <span class="brand-light">HomeFinder</span></a
   ><a routerLink="/properties">Browse homes</a>
+  <a routerLink="/compare">Compare ({{ compare.ids().length }})</a>
   @if (auth.user(); as user) {
+    <a routerLink="/notifications">Inbox</a>
     @if (user.role === 'landlord') {
       <a routerLink="/my-properties">My properties</a>
     }
