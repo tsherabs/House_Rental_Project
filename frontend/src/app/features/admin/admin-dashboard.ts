@@ -13,6 +13,11 @@ import { RouterLink } from '@angular/router';
       <p>Filter users, suspend or reactivate accounts, and record the reason for each change.</p>
       <a routerLink="/admin/users">Manage user accounts</a>
     </section>
+    <section class="card card-body dashboard-section">
+      <h2>Listing reports</h2>
+      <p>Review reported listings, record decisions and manage visibility.</p>
+      <a routerLink="/admin/reports">Review listing reports →</a>
+    </section>
   `,
 })
 export class AdminDashboard {}
