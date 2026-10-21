@@ -1,0 +1,74 @@
+name: homefinder
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: homefinder
+      POSTGRES_DB: homefinder
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in deployment/.env}
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U homefinder -d homefinder"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    logging: &logs
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+  migrate:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment: &api-env
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: postgresql://homefinder:${POSTGRES_PASSWORD}@db:5432/homefinder
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in deployment/.env}
+      APP_ORIGIN: ${APP_ORIGIN:-http://127.0.0.1:8080}
+      TRUST_PROXY: uniquelocal
+      UPLOAD_DIR: /app/backend/uploads
+    command: [node, src/db/migrate.js]
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+    logging: *logs
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    init: true
+    environment: *api-env
+    volumes:
+      - uploads:/app/backend/uploads
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    logging: *logs
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    environment:
+      CADDY_SITE: ${CADDY_SITE:-http://:80}
+    ports:
+      - '${BIND_HOST:-127.0.0.1}:${HTTP_PORT:-8080}:80'
+      - '${BIND_HOST:-127.0.0.1}:${HTTPS_PORT:-8443}:443'
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+    logging: *logs
+volumes:
+  database:
+  uploads:
+  caddy_data:
+  caddy_config:

@@ -13,6 +13,34 @@ class NotFound {}
 })
 class Forbidden {}
 export const routes: Routes = [
+  { path: 'compare', loadComponent: () => import('./features/properties/comparison-page').then((m) => m.ComparisonPage) },
+  { path: 'notifications', canActivate: [roleGuard], data: { roles: ['seeker', 'landlord', 'admin'] },
+    loadComponent: () => import('./features/community/notifications-page').then((m) => m.NotificationsPage) },
+  {
+    path: 'viewings',
+    canActivate: [roleGuard],
+    data: { roles: ['seeker', 'landlord'] },
+    loadComponent: () => import('./features/community/viewings-page').then((m) => m.ViewingsPage),
+  },
+  {
+    path: 'favourites',
+    canActivate: [roleGuard],
+    data: { roles: ['seeker'] },
+    loadComponent: () =>
+      import('./features/community/favourites-page').then((m) => m.FavouritesPage),
+  },
+  {
+    path: 'admin/reports',
+    canActivate: [roleGuard],
+    data: { roles: ['admin'] },
+    loadComponent: () => import('./features/community/reports-page').then((m) => m.ReportsPage),
+  },
+  {
+    path: 'my-properties/expiring',
+    canActivate: [roleGuard],
+    data: { roles: ['landlord'] },
+    loadComponent: () => import('./features/community/renewals-page').then((m) => m.RenewalsPage),
+  },
   { path: '', pathMatch: 'full', redirectTo: 'properties' },
   {
     path: 'properties',
