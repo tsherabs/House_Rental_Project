@@ -1,8 +1,14 @@
 # House Rental Web Application
 
+**Integrated local preview:** authentication, property browsing/management, viewing
+requests/history, favourites, listing reports/moderation and confirmation are now
+implemented. See [run the demo](docs/local-demo.md) for verified setup and role
+journeys, and [M4 handoff](docs/M4-handoff.md) for tests and outstanding team decisions.
+The local preview includes six fictional homes with illustrative generated photos.
+
 M1's initial Angular browsing/details slice is in `frontend/`. See [frontend setup](frontend/README.md) and [M1 integration handoff](docs/M1-handoff.md).
 
-M2's authentication, landlord property/photo management and administrator account interfaces are implemented in the same Angular app. See [M2 handoff, verification and remaining dependencies](docs/M2-handoff.md). M4 viewing/moderation interfaces remain pending their contracts; live full-stack verification is still required.
+M2's authentication, landlord property/photo management and administrator account interfaces are implemented in the same Angular app. See [M2 handoff](docs/M2-handoff.md); its earlier M4 dependencies are addressed by the M4 handoff above.
 
 M3's Express backend is now implemented in `backend/`, with PostgreSQL migrations
 in `database/migrations/`. See [backend setup](backend/README.md),
@@ -10,9 +16,9 @@ in `database/migrations/`. See [backend setup](backend/README.md),
 [OpenAPI contract](docs/api.yaml). The team-approved M3 baseline is recorded in
 [the backend decision](docs/decisions/0001-m3-baseline.md); it supersedes the
 illustrative authentication/schema examples in the original planning material
-below. Frontend integration, M4 modules and Docker/deployment remain outstanding.
+below. M4 integration is implemented on review branches; Docker/deployment remains outstanding.
 
-> **Project status:** M1 browsing UI and M3 backend implemented; team integration pending
+> **Project status:** Integrated local Angular/Express/PostgreSQL preview; review and deployment pending
 > **Team:** 5 members — 2 frontend, 2 backend, 1 DevOps  
 > **Goal:** Build and deploy a web application where landlords advertise rental properties and seekers find properties and request viewings, while practising collaborative development, Scrum, testing, containerization, and CI/CD.
 
