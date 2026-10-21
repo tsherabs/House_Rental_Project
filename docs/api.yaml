@@ -1,10 +1,10 @@
 openapi: 3.1.0
 info:
-  title: Thimphu HomeFinder — M3 API
+  title: Thimphu HomeFinder API
   version: 1.0.0
   description: >-
     M3 contract based on the team-approved baseline confirmed 20 October 2026. Authentication, properties,
-    images and account administration only. M4 endpoints are intentionally absent. All JSON mutations reject
+    images and account administration. M4 workflows follow the implementation proposal in ADR 0002; team review is pending. All JSON mutations reject
     unknown fields. Same-origin CSRF checks apply to unsafe requests. Money is decimal text; instants are UTC
     ISO-8601; move-in dates are date-only.
 servers:
@@ -1266,6 +1266,1050 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /viewings:
+    post:
+      operationId: createViewing
+      summary: 'Seeker: request a viewing of a public listing; creates atomic initial history'
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: Origin
+          in: header
+          required: false
+          description: Exact APP_ORIGIN required unless same-origin Referer is supplied.
+          schema:
+            type: string
+            format: uri
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ViewingEnvelope'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Sign in required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Role, suspended account or CSRF origin rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Resource absent, unavailable or not owned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Invalid lifecycle transition or duplicate pending report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ViewingCreate'
+  /viewings/mine:
+    get:
+      operationId: myViewings
+      summary: 'Seeker: own requests, newest first'
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000000
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 12
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ViewingPage'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Sign in required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Role, suspended account or CSRF origin rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Resource absent, unavailable or not owned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Invalid lifecycle transition or duplicate pending report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /viewings/received:
+    get:
+      operationId: receivedViewings
+      summary: 'Landlord: requests for owned listings, newest first'
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000000
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 12
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ViewingPage'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Sign in required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Role, suspended account or CSRF origin rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Resource absent, unavailable or not owned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Invalid lifecycle transition or duplicate pending report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /viewings/{id}:
+    get:
+      operationId: viewingDetail
+      summary: Requester or owning landlord only; includes ordered history
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ViewingDetail'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Sign in required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Role, suspended account or CSRF origin rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Resource absent, unavailable or not owned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Invalid lifecycle transition or duplicate pending report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /viewings/{id}/status:
+    patch:
+      operationId: decideViewing
+      summary: 'Owning landlord: pending to accepted or rejected'
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: Origin
+          in: header
+          required: false
+          description: Exact APP_ORIGIN required unless same-origin Referer is supplied.
+          schema:
+            type: string
+            format: uri
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ViewingEnvelope'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Sign in required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Role, suspended account or CSRF origin rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Resource absent, unavailable or not owned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Invalid lifecycle transition or duplicate pending report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - accepted
+                    - rejected
+              required:
+                - status
+  /viewings/{id}/cancel:
+    post:
+      operationId: cancelViewing
+      summary: 'Requesting seeker: pending or accepted to cancelled'
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: Origin
+          in: header
+          required: false
+          description: Exact APP_ORIGIN required unless same-origin Referer is supplied.
+          schema:
+            type: string
+            format: uri
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ViewingEnvelope'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Sign in required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Role, suspended account or CSRF origin rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Resource absent, unavailable or not owned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Invalid lifecycle transition or duplicate pending report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties: {}
+              required: []
+  /favourites:
+    get:
+      operationId: myFavourites
+      summary: 'Seeker: own saves; unavailable property is null, available false'
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000000
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 12
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavouritePage'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Sign in required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Role, suspended account or CSRF origin rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Resource absent, unavailable or not owned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Invalid lifecycle transition or duplicate pending report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      operationId: saveFavourite
+      summary: 'Seeker: save public property; existing save is idempotent'
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: Origin
+          in: header
+          required: false
+          description: Exact APP_ORIGIN required unless same-origin Referer is supplied.
+          schema:
+            type: string
+            format: uri
+      responses:
+        '200':
+          description: Already saved (idempotent)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavouriteEnvelope'
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavouriteEnvelope'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Sign in required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Role, suspended account or CSRF origin rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Resource absent, unavailable or not owned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Invalid lifecycle transition or duplicate pending report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                propertyId:
+                  type: string
+                  format: uuid
+              required:
+                - propertyId
+  /favourites/{propertyId}:
+    delete:
+      operationId: removeFavourite
+      summary: 'Seeker: remove own save, idempotent'
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: propertyId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: Origin
+          in: header
+          required: false
+          description: Exact APP_ORIGIN required unless same-origin Referer is supplied.
+          schema:
+            type: string
+            format: uri
+      responses:
+        '204':
+          description: Success; no response body
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Sign in required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Role, suspended account or CSRF origin rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Resource absent, unavailable or not owned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Invalid lifecycle transition or duplicate pending report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /reports:
+    post:
+      operationId: reportListing
+      summary: 'Active signed-in user: report public listing; duplicate pending report returns 409'
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: Origin
+          in: header
+          required: false
+          description: Exact APP_ORIGIN required unless same-origin Referer is supplied.
+          schema:
+            type: string
+            format: uri
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportEnvelope'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Sign in required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Role, suspended account or CSRF origin rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Resource absent, unavailable or not owned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Invalid lifecycle transition or duplicate pending report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                propertyId:
+                  type: string
+                  format: uuid
+                reason:
+                  type: string
+                  minLength: 10
+                  maxLength: 1000
+              required:
+                - propertyId
+                - reason
+  /admin/reports:
+    get:
+      operationId: reviewQueue
+      summary: 'Admin: reports with listing title/visibility, newest first'
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000000
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 12
+        - name: reviewStatus
+          in: query
+          schema:
+            type: string
+            enum:
+              - pending
+              - dismissed
+              - actioned
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportPage'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Sign in required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Role, suspended account or CSRF origin rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Resource absent, unavailable or not owned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Invalid lifecycle transition or duplicate pending report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /admin/reports/{id}:
+    patch:
+      operationId: reviewReport
+      summary: 'Admin: terminal review with reason and reviewer audit; does not implicitly hide listing'
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: Origin
+          in: header
+          required: false
+          description: Exact APP_ORIGIN required unless same-origin Referer is supplied.
+          schema:
+            type: string
+            format: uri
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportEnvelope'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Sign in required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Role, suspended account or CSRF origin rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Resource absent, unavailable or not owned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Invalid lifecycle transition or duplicate pending report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                reviewStatus:
+                  type: string
+                  enum:
+                    - dismissed
+                    - actioned
+                reviewReason:
+                  type: string
+                  minLength: 10
+                  maxLength: 1000
+              required:
+                - reviewStatus
+                - reviewReason
+  /admin/properties/{id}/visibility:
+    patch:
+      operationId: moderateListing
+      summary: 'Admin: audited hide/unhide; cannot restore archived listings or bypass rental/expiry'
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: Origin
+          in: header
+          required: false
+          description: Exact APP_ORIGIN required unless same-origin Referer is supplied.
+          schema:
+            type: string
+            format: uri
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PropertyEnvelope'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Sign in required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Role, suspended account or CSRF origin rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Resource absent, unavailable or not owned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Invalid lifecycle transition or duplicate pending report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                visibilityStatus:
+                  type: string
+                  enum:
+                    - hidden
+                    - published
+                reason:
+                  type: string
+                  minLength: 10
+                  maxLength: 1000
+              required:
+                - visibilityStatus
+                - reason
+  /properties/{id}/confirm:
+    post:
+      operationId: confirmListing
+      summary: 'Owning landlord: renew 30 days; preserve rental and moderation state, reject archived'
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: Origin
+          in: header
+          required: false
+          description: Exact APP_ORIGIN required unless same-origin Referer is supplied.
+          schema:
+            type: string
+            format: uri
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PropertyEnvelope'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Sign in required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Role, suspended account or CSRF origin rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Resource absent, unavailable or not owned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Invalid lifecycle transition or duplicate pending report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties: {}
+              required: []
+  /my/properties/expiring:
+    get:
+      operationId: expiringListings
+      summary: 'Landlord: nonarchived owned listings with null expiry, expired, or expiring within 7 days'
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000000
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 12
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PropertyPage'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Sign in required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Role, suspended account or CSRF origin rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Resource absent, unavailable or not owned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Invalid lifecycle transition or duplicate pending report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   securitySchemes:
     sessionCookie:
@@ -1720,3 +2764,330 @@ components:
       required:
         - accountStatus
         - reason
+    Viewing:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        propertyId:
+          type: string
+          format: uuid
+        propertyTitle:
+          type: string
+        seekerId:
+          type: string
+          format: uuid
+        proposedAt:
+          type: string
+          format: date-time
+        message:
+          anyOf:
+            - type: string
+              maxLength: 1000
+            - type: 'null'
+        status:
+          type: string
+          enum:
+            - pending
+            - accepted
+            - rejected
+            - cancelled
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - propertyId
+        - propertyTitle
+        - seekerId
+        - proposedAt
+        - message
+        - status
+        - createdAt
+        - updatedAt
+    ViewingHistory:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        viewingId:
+          type: string
+          format: uuid
+        oldStatus:
+          anyOf:
+            - type: string
+              enum:
+                - pending
+                - accepted
+                - rejected
+                - cancelled
+            - type: 'null'
+        newStatus:
+          type: string
+          enum:
+            - pending
+            - accepted
+            - rejected
+            - cancelled
+        changedBy:
+          type: string
+          format: uuid
+        changedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - viewingId
+        - oldStatus
+        - newStatus
+        - changedBy
+        - changedAt
+    ViewingCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        propertyId:
+          type: string
+          format: uuid
+        proposedAt:
+          type: string
+          format: date-time
+          description: Future instant with Z or explicit UTC offset
+        message:
+          type: string
+          maxLength: 1000
+      required:
+        - propertyId
+        - proposedAt
+    ViewingEnvelope:
+      type: object
+      additionalProperties: false
+      properties:
+        viewing:
+          $ref: '#/components/schemas/Viewing'
+      required:
+        - viewing
+    ViewingDetail:
+      type: object
+      additionalProperties: false
+      properties:
+        viewing:
+          $ref: '#/components/schemas/Viewing'
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/ViewingHistory'
+      required:
+        - viewing
+        - history
+    Favourite:
+      type: object
+      additionalProperties: false
+      properties:
+        propertyId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - propertyId
+        - createdAt
+    SavedProperty:
+      type: object
+      additionalProperties: false
+      properties:
+        propertyId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        available:
+          type: boolean
+        property:
+          anyOf:
+            - $ref: '#/components/schemas/Property'
+            - type: 'null'
+      required:
+        - propertyId
+        - createdAt
+        - available
+        - property
+    FavouriteEnvelope:
+      type: object
+      additionalProperties: false
+      properties:
+        favourite:
+          $ref: '#/components/schemas/Favourite'
+      required:
+        - favourite
+    Report:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        propertyId:
+          type: string
+          format: uuid
+        reporterId:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          minLength: 10
+          maxLength: 1000
+        reviewStatus:
+          type: string
+          enum:
+            - pending
+            - dismissed
+            - actioned
+        reviewedBy:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: 'null'
+        reviewReason:
+          anyOf:
+            - type: string
+              minLength: 10
+              maxLength: 1000
+            - type: 'null'
+        reviewedAt:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: 'null'
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - propertyId
+        - reporterId
+        - reason
+        - reviewStatus
+        - reviewedBy
+        - reviewReason
+        - reviewedAt
+        - createdAt
+    ReportEnvelope:
+      type: object
+      additionalProperties: false
+      properties:
+        report:
+          $ref: '#/components/schemas/Report'
+      required:
+        - report
+    AdminReport:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        propertyId:
+          type: string
+          format: uuid
+        reporterId:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          minLength: 10
+          maxLength: 1000
+        reviewStatus:
+          type: string
+          enum:
+            - pending
+            - dismissed
+            - actioned
+        reviewedBy:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: 'null'
+        reviewReason:
+          anyOf:
+            - type: string
+              minLength: 10
+              maxLength: 1000
+            - type: 'null'
+        reviewedAt:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: 'null'
+        createdAt:
+          type: string
+          format: date-time
+        propertyTitle:
+          type: string
+        visibilityStatus:
+          type: string
+          enum:
+            - draft
+            - published
+            - hidden
+            - archived
+      required:
+        - id
+        - propertyId
+        - reporterId
+        - reason
+        - reviewStatus
+        - reviewedBy
+        - reviewReason
+        - reviewedAt
+        - createdAt
+        - propertyTitle
+        - visibilityStatus
+    ViewingPage:
+      type: object
+      additionalProperties: false
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Viewing'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+      required:
+        - data
+        - pagination
+    FavouritePage:
+      type: object
+      additionalProperties: false
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SavedProperty'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+      required:
+        - data
+        - pagination
+    ReportPage:
+      type: object
+      additionalProperties: false
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminReport'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+      required:
+        - data
+        - pagination
