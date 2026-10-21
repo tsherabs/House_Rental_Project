@@ -1,1 +1,18 @@
-.auth-panel{max-width:580px;margin:2rem auto}.auth-panel h1{font-size:2.3rem}form{display:grid;gap:1rem}#password-help{font-size:.9rem;margin:0}button{margin-top:.5rem}
+.auth-panel {
+  max-width: 580px;
+  margin: 2rem auto;
+}
+.auth-panel h1 {
+  font-size: 2.3rem;
+}
+form {
+  display: grid;
+  gap: 1rem;
+}
+#password-help {
+  font-size: 0.9rem;
+  margin: 0;
+}
+button {
+  margin-top: 0.5rem;
+}

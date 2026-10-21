@@ -33,6 +33,8 @@ select {
   outline-offset: 4px;
 }
 .site-nav {
+  flex-wrap: wrap;
+  align-items: center;
   display: flex;
   justify-content: space-between;
   gap: 1rem;

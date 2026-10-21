@@ -9,6 +9,8 @@ import { authRoutes } from './routes/auth.routes.js';
 import { propertiesRoutes } from './routes/properties.routes.js';
 import { imagesRoutes } from './routes/images.routes.js';
 import { usersRoutes } from './routes/users.routes.js';
+import { viewingsRoutes } from './routes/viewings.routes.js';
+import { communityRoutes } from './routes/community.routes.js';
 import { notFound } from './utils/errors.js';
 
 export function createApp({ pool, config, logger = console }) {
@@ -32,6 +34,8 @@ export function createApp({ pool, config, logger = console }) {
     cookie: { ...cookieOptions(config), maxAge: config.sessionTtlMs } }));
   const authenticate = authentication(pool, config);
   app.use('/api/v1/auth', authRoutes(pool, config, authenticate));
+  app.use('/api/v1/viewings', viewingsRoutes(pool, authenticate));
+  app.use('/api/v1', communityRoutes(pool, authenticate));
   app.use('/api/v1', propertiesRoutes(pool, authenticate));
   app.use('/api/v1', imagesRoutes(pool, config, authenticate, logger));
   app.use('/api/v1/admin/users', usersRoutes(pool, authenticate));

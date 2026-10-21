@@ -11,19 +11,24 @@ export const sessionInterceptor: HttpInterceptorFn = (request, next) => {
   const auth = inject(AuthService);
   const router = inject(Router);
   const path = request.url.slice(base.length);
-  const publicRead = request.method === 'GET' && /^\/(properties(?:\/[^/]+)?|property-images\/[^/]+)$/.test(path);
+  const publicRead =
+    request.method === 'GET' && /^\/(properties(?:\/[^/]+)?|property-images\/[^/]+)$/.test(path);
   const protectedCall = !path.startsWith('/auth/') && !publicRead;
-  return next(request.clone({ withCredentials: true })).pipe(catchError(error => {
-    if (protectedCall && error.status === 401) {
-      auth.clear();
-      void router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
-    }
-    if (protectedCall && error.status === 403) {
-      return auth.refresh().pipe(switchMap(user => {
-        if (!user) void router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
-        return throwError(() => error);
-      }));
-    }
-    return throwError(() => error);
-  }));
+  return next(request.clone({ withCredentials: true })).pipe(
+    catchError((error) => {
+      if (protectedCall && error.status === 401) {
+        auth.clear();
+        void router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
+      }
+      if (protectedCall && error.status === 403) {
+        return auth.refresh().pipe(
+          switchMap((user) => {
+            if (!user) void router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
+            return throwError(() => error);
+          }),
+        );
+      }
+      return throwError(() => error);
+    }),
+  );
 };
