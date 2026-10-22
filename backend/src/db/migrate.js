@@ -5,6 +5,7 @@ import path from 'node:path';
 import { createPool } from './pool.js';
 
 const defaultDirectory = fileURLToPath(new URL('../../../database/migrations/', import.meta.url));
+const hash = (text) => createHash('sha256').update(text).digest('hex');
 export async function migrate(pool, directory = defaultDirectory) {
   const client = await pool.connect();
   const applied = [];
@@ -22,9 +23,13 @@ export async function migrate(pool, directory = defaultDirectory) {
     // Verify every existing checksum before applying anything new.
     const scripts = await Promise.all(files.map(async (name) => {
       const sql = await readFile(path.join(directory, name), 'utf8');
-      const checksum = createHash('sha256').update(sql).digest('hex');
+      const normalized = sql.replaceAll('\r\n', '\n');
+      const checksum = hash(normalized);
       const existing = rows.find((r) => r.name === name);
-      if (existing && existing.checksum !== checksum) throw new Error(`Applied migration changed: ${name}`);
+      // Older databases hashed checkout bytes. Accept those LF/CRLF variants without
+      // changing recorded checksums; every other content change still fails closed.
+      const compatible = [checksum, hash(normalized.replaceAll('\n', '\r\n')), hash(sql)];
+      if (existing && !compatible.includes(existing.checksum)) throw new Error(`Applied migration changed: ${name}`);
       if (!existing && rows.some((r) => r.name > name)) throw new Error(`Out-of-order migration: ${name}`);
       return { name, sql, checksum, existing };
     }));
