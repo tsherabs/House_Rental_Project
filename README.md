@@ -1,5 +1,11 @@
 # House Rental Web Application
 
+**Platform enhancement:** the comparison page, move-in budget planner, private
+notification inbox, shared PostgreSQL request limits, Docker package and CI workflow
+are implemented. Start with the [user guide](docs/user-guide.md),
+[deployment runbook](docs/deployment.md) and [verification report](docs/platform-readiness.md).
+The existing seeded demo uses port 4200; the separate packaged preview uses port 8080.
+
 **Integrated local preview:** authentication, property browsing/management, viewing
 requests/history, favourites, listing reports/moderation and confirmation are now
 implemented. See [run the demo](docs/local-demo.md) for verified setup and role
@@ -16,7 +22,7 @@ in `database/migrations/`. See [backend setup](backend/README.md),
 [OpenAPI contract](docs/api.yaml). The team-approved M3 baseline is recorded in
 [the backend decision](docs/decisions/0001-m3-baseline.md); it supersedes the
 illustrative authentication/schema examples in the original planning material
-below. M4 integration is implemented on review branches; Docker/deployment remains outstanding.
+below. M4 integration and the deployment package require team review; public hosting remains outstanding.
 
 > **Project status:** Integrated local Angular/Express/PostgreSQL preview; review and deployment pending
 > **Team:** 5 members — 2 frontend, 2 backend, 1 DevOps  

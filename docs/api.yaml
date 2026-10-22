@@ -6,10 +6,130 @@ info:
     M3 contract based on the team-approved baseline confirmed 20 October 2026. Authentication, properties,
     images and account administration. M4 workflows follow the implementation proposal in ADR 0002; team review is pending. All JSON mutations reject
     unknown fields. Same-origin CSRF checks apply to unsafe requests. Money is decimal text; instants are UTC
-    ISO-8601; move-in dates are date-only.
+    ISO-8601; move-in dates are date-only. ADR 0003 adds the notification inbox and readiness.
+    Database-backed limits apply across API instances: login/register share 30 attempts per IP per
+    15-minute window; viewing creation allows 30 attempts and reporting 10 attempts per account per
+    hourly window, including invalid submissions. Limited responses return 429 RATE_LIMITED with Retry-After seconds.
 servers:
   - url: /api/v1
 paths:
+  /ready:
+    get:
+      operationId: readiness
+      summary: Database and current schema readiness
+      security: []
+      responses:
+        '200':
+          description: Database reachable and migration 0007 applied
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: { type: string, const: ready }
+        '503':
+          description: Database unavailable or required migration missing
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: { type: string, const: unavailable }
+  /notifications:
+    get:
+      operationId: listNotifications
+      summary: List the active authenticated account's own inbox
+      description: Newest first by createdAt and id. unreadCount counts all unread items for the account, independent of pagination. Messages are generated atomically with viewing and moderation events. No historical backfill or email delivery.
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, maximum: 1000000, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 50, default: 12 }
+        - in: query
+          name: unreadOnly
+          schema: { type: boolean, default: false }
+      responses:
+        '200':
+          description: Inbox page
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [data, pagination, unreadCount]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Notification' }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+                  unreadCount: { type: integer, minimum: 0 }
+        '400':
+          description: Invalid or unknown query fields
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '403':
+          description: Account suspended
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+  /notifications/{id}/read:
+    patch:
+      operationId: readNotification
+      summary: Mark an owned notification read idempotently
+      description: Requires the normal same-origin CSRF header. Repeated calls preserve the first readAt timestamp. Unrelated and missing identifiers both return 404.
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: false }
+      responses:
+        '200':
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [notification]
+                properties:
+                  notification: { $ref: '#/components/schemas/Notification' }
+        '400':
+          description: Invalid identifier or nonempty body
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '403':
+          description: Account suspended or CSRF rejected
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '404':
+          description: Notification not found for this account
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
   /health:
     get:
       operationId: health
@@ -1281,6 +1401,14 @@ paths:
             type: string
             format: uri
       responses:
+        '429':
+          description: Account viewing submission limit reached
+          headers:
+            Retry-After:
+              schema: { type: integer, minimum: 1 }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
         '201':
           description: Success
           content:
@@ -1876,6 +2004,14 @@ paths:
             type: string
             format: uri
       responses:
+        '429':
+          description: Account report submission limit reached
+          headers:
+            Retry-After:
+              schema: { type: integer, minimum: 1 }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
         '201':
           description: Success
           content:
@@ -2318,6 +2454,22 @@ components:
       name: homefinder.sid
       description: Default SESSION_COOKIE_NAME; opaque server-side PostgreSQL session. Configure clients if renamed.
   schemas:
+    Notification:
+      type: object
+      additionalProperties: false
+      required: [id, kind, title, message, link, createdAt, readAt]
+      properties:
+        id: { type: string, format: uuid }
+        kind:
+          type: string
+          enum: [viewing_requested, viewing_accepted, viewing_rejected, viewing_cancelled, report_reviewed, listing_moderated]
+        title: { type: string, maxLength: 160 }
+        message: { type: string, maxLength: 500 }
+        link:
+          type: string
+          enum: [/viewings, /my-properties, /properties]
+        createdAt: { type: string, format: date-time }
+        readAt: { type: [string, 'null'], format: date-time }
     Error:
       type: object
       additionalProperties: false
