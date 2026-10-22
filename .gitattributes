@@ -1,0 +1,2 @@
+# Migration checksums must not depend on a contributor's Windows autocrlf setting.
+database/migrations/*.sql text eol=lf
