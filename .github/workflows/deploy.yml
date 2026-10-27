@@ -1,0 +1,78 @@
+name: House Rental CD - Deploy to Docker server
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: house-rental-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy published images
+    # Deploy only commits from main. CI must have published this exact SHA.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 15
+    env:
+      DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+      DEPLOY_PORT: ${{ vars.DEPLOY_PORT || '22' }}
+    steps:
+      - name: Checkout repository deployment files
+        uses: actions/checkout@v4
+
+      - name: Configure SSH securely
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${DEPLOY_HOST:?Set DEPLOY_HOST GitHub variable}"
+          : "${DEPLOY_USER:?Set DEPLOY_USER GitHub variable}"
+          : "${SSH_PRIVATE_KEY:?Set DEPLOY_SSH_PRIVATE_KEY secret}"
+          : "${SSH_KNOWN_HOSTS:?Set DEPLOY_SSH_KNOWN_HOSTS secret}"
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Upload Compose configuration (never application secrets)
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -o StrictHostKeyChecking=yes -i "$HOME/.ssh/id_ed25519" \
+            -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" 'mkdir -p "$HOME/house-rental"'
+          scp -o StrictHostKeyChecking=yes -i "$HOME/.ssh/id_ed25519" \
+            -P "$DEPLOY_PORT" compose.yaml \
+            "$DEPLOY_USER@$DEPLOY_HOST:house-rental/compose.yaml"
+          scp -o StrictHostKeyChecking=yes -i "$HOME/.ssh/id_ed25519" \
+            -P "$DEPLOY_PORT" deployment/compose.prod.yaml \
+            "$DEPLOY_USER@$DEPLOY_HOST:house-rental/compose.prod.yaml"
+
+      - name: Pull published images and deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+          IMAGE_BASE="ghcr.io/${GITHUB_REPOSITORY,,}"
+          IMAGE_TAG="sha-${GITHUB_SHA}"
+          ssh -o StrictHostKeyChecking=yes -i "$HOME/.ssh/id_ed25519" \
+            -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" \
+            "IMAGE_BASE='$IMAGE_BASE' IMAGE_TAG='$IMAGE_TAG' bash -se" <<'REMOTE'
+          set -euo pipefail
+          cd "$HOME/house-rental"
+          if [ ! -f .env ]; then
+            echo 'Missing $HOME/house-rental/.env on the server' >&2
+            exit 1
+          fi
+          docker compose --env-file .env -f compose.yaml -f compose.prod.yaml pull
+          docker compose --env-file .env -f compose.yaml -f compose.prod.yaml \
+            up -d --no-build --remove-orphans --wait --wait-timeout 180
+          docker compose --env-file .env -f compose.yaml -f compose.prod.yaml ps
+          REMOTE
