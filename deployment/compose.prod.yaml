@@ -1,0 +1,9 @@
+# Combine with the existing project compose.yaml.
+# Reuse its database, upload, and Caddy volumes while deploying prebuilt images.
+services:
+  migrate:
+    image: ${IMAGE_BASE:?Set IMAGE_BASE}-api:${IMAGE_TAG:?Set IMAGE_TAG}
+  api:
+    image: ${IMAGE_BASE:?Set IMAGE_BASE}-api:${IMAGE_TAG:?Set IMAGE_TAG}
+  web:
+    image: ${IMAGE_BASE:?Set IMAGE_BASE}-web:${IMAGE_TAG:?Set IMAGE_TAG}
