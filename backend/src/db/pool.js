@@ -3,7 +3,7 @@ import pg from 'pg';
 // DATE stays a date-only string, independent of host timezone. NUMERIC stays text.
 pg.types.setTypeParser(1082, (value) => value);
 export function createPool(connectionString, options = {}) {
-  return new pg.Pool({ connectionString, max: 10, ...options });
+  return new pg.Pool({ connectionString, max: 10, connectionTimeoutMillis: 5000, idleTimeoutMillis: 30000, ...options });
 }
 
 export async function transaction(pool, work) {

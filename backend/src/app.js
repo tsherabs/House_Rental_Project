@@ -46,7 +46,7 @@ export function createApp({ pool, config, logger = console }) {
   const authenticate = authentication(pool, config);
   app.get('/api/v1/ready', async (_req, res) => {
     try {
-      const { rows } = await pool.query("SELECT name FROM schema_migrations WHERE name='0007_notifications_limits.sql'");
+      const { rows } = await pool.query({ text: "SELECT name FROM schema_migrations WHERE name='0007_notifications_limits.sql'", query_timeout: 4000 });
       if (!rows.length) return res.status(503).json({ status: 'unavailable' });
       res.json({ status: 'ready' });
     } catch { res.status(503).json({ status: 'unavailable' }); }
