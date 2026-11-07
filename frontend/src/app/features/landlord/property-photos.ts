@@ -20,7 +20,7 @@ export function validatePhotos(files: File[], existing: number): string | null {
   template: ` <section aria-label="Property photo management">
     <h2>Property photos</h2>
     <p>JPEG, PNG or WebP, up to 5 MiB each. Maximum 8 photos including existing images.</p>
-    <p>The server also checks image content and may enforce lower configured limits.</p>
+    <p>Your first photo is the cover image. Use the arrows to change the order.</p>
     @if (failure(); as error) {
       <p role="alert">{{ error.message }}</p>
       <button type="button" [disabled]="busy()" (click)="refresh()">Refresh photos</button>

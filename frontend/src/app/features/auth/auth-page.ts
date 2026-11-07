@@ -14,7 +14,13 @@ export const passwordBytes: ValidatorFn = (control) =>
   styleUrl: './auth-page.css',
   template: `
     <section class="auth-panel card card-body">
-      <p class="eyebrow">THIMPHU HOMEFINDER</p>
+      <p class="auth-intro">
+        {{
+          registering
+            ? 'Your next chapter starts here.'
+            : 'Your homes, plans and conversations, together.'
+        }}
+      </p>
       <h1>{{ registering ? 'Create an account' : 'Welcome back' }}</h1>
       @if (created()) {
         <p role="status">Account created. Sign in to continue.</p>

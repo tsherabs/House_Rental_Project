@@ -9,12 +9,19 @@ import { CompareButton } from './compare-button';
   imports: [CurrencyPipe, RouterLink, CompareButton],
   template: ` <article class="card property-card">
     @if (property().images.length) {
-      <img
-        [src]="property().images[0].url"
-        [alt]="property().title + ' — photo 1'"
-        loading="lazy"
-        (error)="hideBroken($event)"
-      />
+      <a
+        class="property-photo-link"
+        [routerLink]="['/properties', property().id]"
+        [queryParams]="query()"
+        [attr.aria-label]="'View ' + property().title"
+      >
+        <img
+          [src]="property().images[0].url"
+          [alt]="property().title + ' — photo 1'"
+          loading="lazy"
+          (error)="hideBroken($event)"
+        />
+      </a>
     } @else {
       <div class="no-photo">No photos available</div>
     }
@@ -30,12 +37,14 @@ import { CompareButton } from './compare-button';
         <span>/ month</span>
       </p>
       <p class="card-facilities">
-        {{ property().bedrooms }} bedrooms ·
+        {{ property().bedrooms }} {{ property().bedrooms === 1 ? 'bedroom' : 'bedrooms' }} ·
         {{ property().waterAvailable ? 'Water' : 'No water' }} ·
         {{ property().parkingAvailable ? 'Parking' : 'No parking' }}
       </p>
       <span class="badge">{{ property().availabilityStatus }}</span>
-      <div class="compare-action"><app-compare-button [propertyId]="property().id" [title]="property().title" /></div>
+      <div class="compare-action">
+        <app-compare-button [propertyId]="property().id" [title]="property().title" />
+      </div>
     </div>
   </article>`,
 })

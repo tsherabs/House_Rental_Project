@@ -1,23 +1,48 @@
 <a class="skip-link" href="#main">Skip to content</a>
 <nav class="site-nav" aria-label="Main navigation">
   <a routerLink="/properties" class="brand"
-    ><span class="brand-mark" aria-hidden="true">⌂</span> Thimphu
-    <span class="brand-light">HomeFinder</span></a
-  ><a routerLink="/properties">Browse homes</a>
-  <a routerLink="/compare">Compare ({{ compare.ids().length }})</a>
+    ><span class="brand-mark" aria-hidden="true"
+      ><svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linejoin="round"
+      >
+        <path d="M3 11 12 3l9 8v10h-7v-7h-4v7H3Z" /></svg
+    ></span>
+    Thimphu <span class="brand-light">HomeFinder</span></a
+  ><a routerLink="/properties" routerLinkActive="nav-active" ariaCurrentWhenActive="page"
+    >Browse homes</a
+  >
+  <a routerLink="/compare" routerLinkActive="nav-active" ariaCurrentWhenActive="page"
+    >Compare ({{ compare.ids().length }})</a
+  >
   @if (auth.user(); as user) {
-    <a routerLink="/notifications">Inbox</a>
+    <a routerLink="/notifications" routerLinkActive="nav-active" ariaCurrentWhenActive="page"
+      >Inbox</a
+    >
     @if (user.role === 'landlord') {
-      <a routerLink="/my-properties">My properties</a>
+      <a routerLink="/my-properties" routerLinkActive="nav-active" ariaCurrentWhenActive="page"
+        >My properties</a
+      >
     }
     @if (user.role === 'admin') {
-      <a routerLink="/admin">Administration</a>
+      <a routerLink="/admin" routerLinkActive="nav-active" ariaCurrentWhenActive="page"
+        >Administration</a
+      >
     }
     @if (user.role === 'seeker') {
-      <a routerLink="/favourites">Favourites</a>
+      <a routerLink="/favourites" routerLinkActive="nav-active" ariaCurrentWhenActive="page"
+        >Favourites</a
+      >
     }
     @if (user.role === 'seeker' || user.role === 'landlord') {
-      <a routerLink="/viewings">My viewings</a>
+      <a routerLink="/viewings" routerLinkActive="nav-active" ariaCurrentWhenActive="page"
+        >My viewings</a
+      >
     }
     <span>{{ user.name }}</span
     ><button type="button" [disabled]="signingOut()" (click)="logout()">
@@ -35,4 +60,5 @@
   Find your next home in Thimphu · Prices in Bhutanese Ngultrum (BTN)<br /><a href="/help.html"
     >User guide and help</a
   >
+  · <a href="/photo-credits.html">Photography credits</a>
 </footer>

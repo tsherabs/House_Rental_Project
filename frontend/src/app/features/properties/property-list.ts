@@ -19,35 +19,46 @@ import { PropertyCard } from './property-card';
 @Component({
   selector: 'app-property-list',
   imports: [ReactiveFormsModule, PropertyCard, RouterLink],
-  template: ` <header class="browse-hero">
-      <div class="hero-copy">
-        <p class="eyebrow">ROOTED IN THIMPHU. MADE FOR YOU.</p>
+  styleUrl: './property-list.css',
+  template: ` <header class="home-intro">
+      <div class="intro-copy">
         <h1>A new chapter.<br /><em>A place to call home.</em></h1>
         <p>
           From quiet hillside apartments to a home near the heart of the city. Find your space in
           Thimphu.
         </p>
-        <a class="button-link" routerLink="/properties" fragment="find-homes"
-          >Explore available homes <span aria-hidden="true">↗</span></a
-        >
-        <div class="hero-notes">
-          <span>Local neighbourhoods</span><span>Viewings made simple</span>
-        </div>
+        <a class="button-link explore-link" routerLink="/properties" fragment="find-homes">
+          Explore available homes
+          <svg
+            aria-hidden="true"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+          >
+            <path d="M4 12h15m-6-6 6 6-6 6" />
+          </svg>
+        </a>
+        <p class="intro-note">Local neighbourhoods. A place for your everyday.</p>
       </div>
-      <figure class="hero-photo">
+      <figure class="city-portrait">
         <img
-          src="/images/thimphu-home.webp"
-          alt="Illustration of a Bhutanese home overlooking a green mountain valley"
-          fetchpriority="high"
+          src="/images/thimphu-central.jpg"
+          alt="Real photograph of central Thimphu, with traditional rooftops and Tashichho Dzong against the green hillside"
           width="1440"
           height="960"
+          fetchpriority="high"
         />
-        <figcaption>At home in the valley <small>Illustrative image</small></figcaption>
+        <figcaption>
+          <span>Thimphu, from a different perspective.</span
+          ><a href="/photo-credits.html">Photograph: Christopher J. Fynn · 2019</a>
+        </figcaption>
       </figure>
     </header>
     <div class="section-heading" id="find-homes">
       <div>
-        <p class="eyebrow">FIND YOUR CORNER OF THE CITY</p>
         <h2>Homes worth coming home to.</h2>
       </div>
       <span>Thimphu, Bhutan</span>
@@ -82,8 +93,10 @@ import { PropertyCard } from './property-card';
       <label class="check"
         ><input type="checkbox" formControlName="parkingAvailable" /> Parking available</label
       >
-      <button type="submit">Apply filters</button
-      ><button type="button" class="secondary" (click)="reset()">Reset</button>
+      <div class="filter-actions">
+        <button type="submit">Find homes</button
+        ><button type="button" class="secondary" (click)="reset()">Clear filters</button>
+      </div>
       @if (invalid()) {
         <p role="alert">
           Enter nonnegative rents, minimum no greater than maximum, and a whole bedroom count from 0
@@ -92,7 +105,14 @@ import { PropertyCard } from './property-card';
       }
     </form>
     @if (loading()) {
-      <p role="status">Loading homes…</p>
+      <div role="status" class="search-loading">
+        <span class="loading-dot" aria-hidden="true"></span>Loading homes…
+      </div>
+      <div class="listing-skeletons" aria-hidden="true">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
     }
     @if (error()) {
       <div role="alert">
@@ -101,14 +121,20 @@ import { PropertyCard } from './property-card';
       </div>
     }
     @if (result(); as page) {
-      <p role="status">{{ page.pagination.total }} homes found</p>
+      <p role="status">
+        {{ page.pagination.total }} {{ page.pagination.total === 1 ? 'home' : 'homes' }} found
+      </p>
       <section class="property-grid" aria-label="Rental homes">
         @for (property of page.data; track property.id) {
           <app-property-card [property]="property" [query]="query" />
         }
       </section>
       @if (!page.data.length) {
-        <p>No homes match these filters. Try a wider rent range or another neighbourhood.</p>
+        <div class="empty-state">
+          <h2>A different search could open a door.</h2>
+          <p>No homes match these filters. Try a wider rent range or another neighbourhood.</p>
+          <button class="secondary" (click)="reset()">Clear filters</button>
+        </div>
       }
       @if (page.pagination.totalPages > 1) {
         <nav class="pagination" aria-label="Results pages">
@@ -124,7 +150,36 @@ import { PropertyCard } from './property-card';
           </button>
         </nav>
       }
-    }`,
+    }
+    <section class="place-story" aria-labelledby="place-story-title">
+      <figure>
+        <img
+          src="/images/thimphu-valley.jpg"
+          alt="Thimphu valley framed by pine trees, with clouds resting on the surrounding mountains"
+          width="1440"
+          height="1080"
+          loading="lazy"
+          decoding="async"
+        />
+        <figcaption>
+          Thimphu valley, July 2016. <a href="/photo-credits.html">Photo: Afifa Afrin</a>
+        </figcaption>
+      </figure>
+      <div class="place-story-copy">
+        <h2 id="place-story-title">The neighbourhood is part of the home.</h2>
+        <p>A familiar route to work. A view you stop to look at. Space for the way you live.</p>
+        <p>
+          Start with your budget and location, compare the homes you like, then arrange a viewing to
+          see how a place feels in person.
+        </p>
+        <a class="text-link" routerLink="/compare"
+          >Compare your shortlist <span aria-hidden="true">→</span></a
+        >
+        <p class="photo-context">
+          City photography gives a sense of place. Listing photos are supplied by landlords.
+        </p>
+      </div>
+    </section>`,
 })
 export class PropertyList {
   private readonly route = inject(ActivatedRoute);

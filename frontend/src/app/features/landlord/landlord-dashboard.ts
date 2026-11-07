@@ -12,10 +12,10 @@ import { Pagination } from '../../shared/pagination';
   selector: 'app-landlord-dashboard',
   imports: [RouterLink, CurrencyPipe, Pagination],
   styleUrl: './landlord.css',
-  template: ` <header>
-      <p class="eyebrow">LANDLORD WORKSPACE</p>
+  template: ` <header class="workspace-heading">
       <h1>My properties</h1>
-      <a routerLink="/my-properties/new">Add a property</a>
+      <p>Every home, in one place. Update details, add photos and manage availability.</p>
+      <a class="button-link" routerLink="/my-properties/new">Add a property</a>
       <div class="actions">
         <a routerLink="/viewings">Viewing requests →</a
         ><a routerLink="/my-properties/expiring">Confirm expiring listings →</a>
@@ -38,6 +38,11 @@ import { Pagination } from '../../shared/pagination';
           <article class="card card-body">
             @if (property.images.length) {
               <img class="dashboard-photo" [src]="property.images[0].url" [alt]="property.title" />
+            } @else {
+              <div class="dashboard-no-photo">
+                <strong>Ready for its first photo</strong
+                ><span>Add photos to help your home stand out.</span>
+              </div>
             }
             <h2>{{ property.title }}</h2>
             <p>{{ property.neighbourhood }}</p>
@@ -63,7 +68,13 @@ import { Pagination } from '../../shared/pagination';
             }
           </article>
         } @empty {
-          <p>You have no properties yet. Add your first listing to get started.</p>
+          <div class="empty-state">
+            <h2>Your next tenant starts here.</h2>
+            <p>
+              Add your home’s details, then upload photos. Your saved listings will appear here.
+            </p>
+            <a class="button-link" routerLink="/my-properties/new">Add your first property</a>
+          </div>
         }
       </section>
       <app-pagination [pagination]="page.pagination" [busy]="pending()" (pageChange)="go($event)" />

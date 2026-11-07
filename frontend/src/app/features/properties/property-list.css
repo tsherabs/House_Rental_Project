@@ -1,0 +1,210 @@
+:host {
+  display: block;
+}
+.home-intro {
+  display: grid;
+  grid-template-columns: 0.92fr 1.08fr;
+  align-items: center;
+  gap: 4rem;
+  padding: 1rem 0 3.5rem;
+}
+.intro-copy h1 {
+  font:
+    400 clamp(2.7rem, 4.4vw, 4rem)/1.08 Georgia,
+    serif;
+  letter-spacing: -0.035em;
+  margin: 0 0 1.5rem;
+  text-wrap: balance;
+}
+.intro-copy h1 em {
+  color: #597560;
+}
+.intro-copy > p {
+  max-width: 42ch;
+  color: #53675d;
+  line-height: 1.8;
+  margin: 0 0 1.8rem;
+}
+.intro-copy .intro-note {
+  font-size: 0.8rem;
+  margin: 1.6rem 0 0;
+}
+.explore-link {
+  gap: 1.3rem;
+}
+.explore-link svg {
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.explore-link:is(:hover, :focus-visible) svg {
+  transform: translateX(4px);
+}
+.city-portrait {
+  margin: 0;
+  min-width: 0;
+}
+.city-portrait > img {
+  width: 100%;
+  height: 480px;
+  display: block;
+  object-fit: cover;
+  object-position: 56% center;
+  border-radius: 12px;
+}
+.city-portrait figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.9rem 0 0;
+  color: #53675d;
+  font-size: 0.8rem;
+}
+.city-portrait figcaption a {
+  font-size: 0.7rem;
+  color: #53675d;
+}
+.place-story {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  align-items: center;
+  gap: 4rem;
+  border-top: 1px solid #d9e0d7;
+  padding-top: 3.5rem;
+  margin-top: 4rem;
+}
+.place-story figure {
+  margin: 0;
+}
+.place-story img {
+  width: 100%;
+  height: 360px;
+  display: block;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.place-story figcaption {
+  color: #53675d;
+  font-size: 0.7rem;
+  padding-top: 0.65rem;
+}
+.place-story h2 {
+  font:
+    400 2.5rem/1.15 Georgia,
+    serif;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+  margin: 0 0 1.5rem;
+}
+.place-story-copy > p {
+  color: #53675d;
+  max-width: 48ch;
+}
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  font-weight: 600;
+}
+.text-link span {
+  transition: transform 180ms ease-out;
+}
+.text-link:is(:hover, :focus-visible) span {
+  transform: translateX(4px);
+}
+.place-story-copy .photo-context {
+  font-size: 0.75rem;
+  margin-top: 1.5rem;
+}
+.search-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem 0 1rem;
+  color: #53675d;
+}
+.loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #205c48;
+  animation: searching 1s ease-in-out infinite alternate;
+}
+.listing-skeletons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+.listing-skeletons > div {
+  height: 280px;
+  border-radius: 12px;
+  background: #e9ede5;
+}
+@keyframes searching {
+  to {
+    opacity: 0.35;
+  }
+}
+@media (max-width: 850px) {
+  .home-intro,
+  .place-story {
+    gap: 2rem;
+  }
+  .city-portrait > img {
+    height: 400px;
+  }
+  .place-story h2 {
+    font-size: 2rem;
+  }
+  .listing-skeletons {
+    grid-template-columns: 1fr 1fr;
+  }
+  .listing-skeletons > div:last-child {
+    display: none;
+  }
+}
+@media (max-width: 650px) {
+  .home-intro,
+  .place-story {
+    grid-template-columns: 1fr;
+  }
+  .home-intro {
+    padding: 0.5rem 0 2rem;
+    gap: 2rem;
+  }
+  .intro-copy h1 {
+    font-size: 2.7rem;
+  }
+  .city-portrait > img {
+    height: 330px;
+  }
+  .city-portrait figcaption {
+    font-size: 0.75rem;
+  }
+  .place-story {
+    margin-top: 2.5rem;
+    padding-top: 2.5rem;
+    gap: 1.5rem;
+  }
+  .place-story img {
+    height: 270px;
+  }
+  .place-story h2 {
+    max-width: 22ch;
+  }
+  .listing-skeletons {
+    grid-template-columns: 1fr;
+  }
+  .listing-skeletons > div:nth-child(2) {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-dot {
+    animation: none;
+  }
+  .explore-link svg,
+  .text-link span {
+    transition: none;
+    transform: none !important;
+  }
+}

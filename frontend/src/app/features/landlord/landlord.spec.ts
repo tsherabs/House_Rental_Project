@@ -108,6 +108,54 @@ describe('Landlord property integration', () => {
     http.expectNone('/api/v1/properties/home-1');
     expect(archivedEditor.archived()).toBe(true);
   });
+  it('shows and focuses validation feedback when the publish button cannot submit', async () => {
+    const harness = await RouterTestingHarness.create();
+    const editor = await harness.navigateByUrl('/my-properties/new', PropertyEditor);
+    harness.detectChanges();
+    const element = harness.routeNativeElement!;
+    const feedback = element.querySelector<HTMLElement>('.editor-feedback')!;
+    const focus = vi.spyOn(feedback, 'focus');
+    element.querySelector<HTMLButtonElement>('button[type="submit"]')!.click();
+    harness.detectChanges();
+    http.expectNone('/api/v1/properties');
+    expect(editor.submittedInvalid()).toBe(true);
+    expect(element.textContent).toContain('Your changes have not been saved');
+    expect(element.textContent).toContain('Monthly rent is required');
+    expect(focus).toHaveBeenCalled();
+    expect(element.querySelector('[formControlName="title"]')?.getAttribute('aria-invalid')).toBe(
+      'true',
+    );
+  });
+  it('creates once, keeps the saved ID before navigation and allows retry after rejection', async () => {
+    const harness = await RouterTestingHarness.create();
+    const editor = await harness.navigateByUrl('/my-properties/new', PropertyEditor);
+    editor.form.setValue({ ...body, landmarks: '' });
+    editor.save();
+    editor.save();
+    const rejected = http.expectOne('/api/v1/properties');
+    expect(rejected.request.method).toBe('POST');
+    expect(rejected.request.body).toEqual(body);
+    rejected.flush(
+      { error: { details: [{ field: 'title', message: 'Check the title' }] } },
+      { status: 400, statusText: 'Bad Request' },
+    );
+    expect(editor.pending()).toBe(false);
+    expect(editor.form.controls.title.value).toBe(body.title);
+    expect(editor.failure()?.details[0].field).toBe('title');
+    editor.save();
+    http.expectOne('/api/v1/properties').flush({ property: home });
+    expect(editor.id).toBe(home.id);
+    expect(editor.notice()).toContain('Property saved');
+    await harness.fixture.whenStable();
+    http.expectOne('/api/v1/my/properties/home-1').flush({ property: home });
+    harness.detectChanges();
+    expect(harness.routeNativeElement?.textContent).toContain('Property saved');
+    expect(harness.routeNativeElement?.textContent).toContain('Property photos');
+    editor.save();
+    const update = http.expectOne('/api/v1/properties/home-1');
+    expect(update.request.method).toBe('PATCH');
+    update.flush({ property: home });
+  });
   it('requires confirmation before archive and refreshes the canonical list', async () => {
     const harness = await RouterTestingHarness.create();
     const dashboard = await harness.navigateByUrl('/my-properties', LandlordDashboard);
