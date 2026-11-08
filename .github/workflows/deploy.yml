@@ -1,78 +1,112 @@
-name: House Rental CD - Deploy to Docker server
+name: House Rental CD - Deploy to Ubuntu ARM VM
 
 on:
   workflow_dispatch:
 
 permissions:
   contents: read
+  packages: read
 
 concurrency:
-  group: house-rental-production
+  group: house-rental-vm
   cancel-in-progress: false
 
 jobs:
   deploy:
-    name: Deploy published images
-    # Deploy only commits from main. CI must have published this exact SHA.
+    name: Deploy published images inside the VM
+    # Run manually from main, after Verify AND Publish succeed for this commit.
+    # Never route pull-request jobs to this persistent deployment runner.
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment: production
-    timeout-minutes: 15
-    env:
-      DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
-      DEPLOY_USER: ${{ vars.DEPLOY_USER }}
-      DEPLOY_PORT: ${{ vars.DEPLOY_PORT || '22' }}
+    runs-on: [self-hosted, linux, ARM64, homefinder-deploy]
+    environment: vm-demo
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Checkout repository deployment files
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
-      - name: Configure SSH securely
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
-          SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
-        shell: bash
+      - name: Check VM prerequisites
         run: |
           set -euo pipefail
-          : "${DEPLOY_HOST:?Set DEPLOY_HOST GitHub variable}"
-          : "${DEPLOY_USER:?Set DEPLOY_USER GitHub variable}"
-          : "${SSH_PRIVATE_KEY:?Set DEPLOY_SSH_PRIVATE_KEY secret}"
-          : "${SSH_KNOWN_HOSTS:?Set DEPLOY_SSH_KNOWN_HOSTS secret}"
-          install -m 700 -d "$HOME/.ssh"
-          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/id_ed25519"
-          chmod 600 "$HOME/.ssh/id_ed25519"
-          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
-          chmod 600 "$HOME/.ssh/known_hosts"
-
-      - name: Upload Compose configuration (never application secrets)
-        shell: bash
-        run: |
-          set -euo pipefail
-          ssh -o StrictHostKeyChecking=yes -i "$HOME/.ssh/id_ed25519" \
-            -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" 'mkdir -p "$HOME/house-rental"'
-          scp -o StrictHostKeyChecking=yes -i "$HOME/.ssh/id_ed25519" \
-            -P "$DEPLOY_PORT" compose.yaml \
-            "$DEPLOY_USER@$DEPLOY_HOST:house-rental/compose.yaml"
-          scp -o StrictHostKeyChecking=yes -i "$HOME/.ssh/id_ed25519" \
-            -P "$DEPLOY_PORT" deployment/compose.prod.yaml \
-            "$DEPLOY_USER@$DEPLOY_HOST:house-rental/compose.prod.yaml"
-
-      - name: Pull published images and deploy
-        shell: bash
-        run: |
-          set -euo pipefail
-          IMAGE_BASE="ghcr.io/${GITHUB_REPOSITORY,,}"
-          IMAGE_TAG="sha-${GITHUB_SHA}"
-          ssh -o StrictHostKeyChecking=yes -i "$HOME/.ssh/id_ed25519" \
-            -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" \
-            "IMAGE_BASE='$IMAGE_BASE' IMAGE_TAG='$IMAGE_TAG' bash -se" <<'REMOTE'
-          set -euo pipefail
-          cd "$HOME/house-rental"
-          if [ ! -f .env ]; then
-            echo 'Missing $HOME/house-rental/.env on the server' >&2
+          docker info > /dev/null
+          docker compose version
+          # Isolate registry credentials from the runner user's normal Docker login.
+          echo "DOCKER_CONFIG=$RUNNER_TEMP/homefinder-docker-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_ENV"
+          if [ ! -f "$HOME/house-rental/.env" ]; then
+            echo 'Missing $HOME/house-rental/.env for the runner user. See docs/vm-deployment.md.' >&2
             exit 1
           fi
-          docker compose --env-file .env -f compose.yaml -f compose.prod.yaml pull
-          docker compose --env-file .env -f compose.yaml -f compose.prod.yaml \
-            up -d --no-build --remove-orphans --wait --wait-timeout 180
-          docker compose --env-file .env -f compose.yaml -f compose.prod.yaml ps
-          REMOTE
+
+      - name: Log in to GHCR to read published images
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          logout: true
+
+      - name: Prepare deployment configuration
+        run: |
+          set -euo pipefail
+          # Persistent deployment files and secrets stay outside the checkout directory.
+          install -m 600 compose.yaml "$HOME/house-rental/compose.yaml"
+          install -m 600 deployment/compose.prod.yaml "$HOME/house-rental/compose.prod.yaml"
+          echo "IMAGE_BASE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+          echo "IMAGE_TAG=sha-${GITHUB_SHA}" >> "$GITHUB_ENV"
+
+      - name: Pull the published images for this commit
+        run: |
+          set -euo pipefail
+          cd "$HOME/house-rental"
+          docker compose -p homefinder --env-file .env -f compose.yaml -f compose.prod.yaml config --quiet
+          # Pull everything before changing running containers. ARM64 is selected automatically.
+          docker compose -p homefinder --env-file .env -f compose.yaml -f compose.prod.yaml pull
+
+      - name: Run migrations and start updated containers
+        run: |
+          set -euo pipefail
+          cd "$HOME/house-rental"
+          compose=(docker compose -p homefinder --env-file .env -f compose.yaml -f compose.prod.yaml)
+          "${compose[@]}" up -d --no-build --wait --wait-timeout 180 db
+          # Run migrations on every deployment, including a retry of the same commit.
+          "${compose[@]}" run --rm --no-deps migrate
+          # Dependencies were checked above; preserve the existing named data volumes.
+          "${compose[@]}" up -d --no-build --no-deps --wait --wait-timeout 180 api web
+          "${compose[@]}" ps
+
+      - name: Check the website and API through Caddy
+        run: |
+          set -euo pipefail
+          cd "$HOME/house-rental"
+          docker compose -p homefinder --env-file .env -f compose.yaml -f compose.prod.yaml exec -T api node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          // This VM demo uses CADDY_SITE=http://:80 on the private Docker network.
+          for (let attempt = 1; ; attempt++) {
+            try {
+              const page = await fetch('http://web/', { signal: AbortSignal.timeout(5000) });
+              assert.equal(page.status, 200);
+              assert.match(await page.text(), /<app-root/);
+              const ready = await fetch('http://web/api/v1/ready', { signal: AbortSignal.timeout(5000) });
+              assert.equal(ready.status, 200);
+              console.log('Frontend and database-backed API readiness passed through Caddy.');
+              break;
+            } catch (error) {
+              if (attempt === 10) throw error;
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+          }
+          NODE
+
+      - name: Record deployed version
+        run: |
+          {
+            echo '### VM deployment completed'
+            echo "Commit: $GITHUB_SHA"
+            echo "API: $IMAGE_BASE-api:$IMAGE_TAG"
+            echo "Web: $IMAGE_BASE-web:$IMAGE_TAG"
+            echo 'Open the VM address configured in APP_ORIGIN to view the application.'
+          } >> "$GITHUB_STEP_SUMMARY"

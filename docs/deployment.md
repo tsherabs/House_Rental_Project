@@ -2,6 +2,12 @@
 
 This release adds a container package and verification workflow. It is not a hosted production launch. Read the current decisions in `docs/decisions/` before merging; the 30-day renewal and initial null-expiry policy still needs team agreement.
 
+## CI/CD on your Ubuntu ARM64 VM
+
+See [the VM deployment guide](vm-deployment.md) for the self-hosted runner setup.
+Verify and multi-platform publishing run on GitHub; deployment runs manually in the
+VM using its own environment file and persistent volumes.
+
 ## Local development and packaged preview
 
 The existing seeded Angular/Express demo is at `http://127.0.0.1:4200/properties`; see `local-demo.md`. The Docker preview is separate, with its own database, accounts and uploads, at `http://127.0.0.1:8080`. Do not expect the development demo's credentials or listings in the container database.
@@ -72,5 +78,5 @@ For upgrades, take a consistent backup, build images, run the migration service 
 - M1/M2: test seeker, landlord and administrator journeys on the staging origin, including keyboard/mobile use and error recovery. Replace fictional listings and illustrative property photos with authorized real content.
 - M5: configure the domain, TLS, production secrets, private networking, persistent storage, migration ordering, backup/restore, monitoring, release rollback and CI branch protection.
 - Product/operator: supply contact/support details, an appropriate privacy and terms process, data retention/deletion procedures, verified account recovery and a moderation/escalation policy. Self-service password reset, email verification and outbound notification delivery are not implemented.
-- Run backend integration tests against a separate `_test` database, Angular tests/build, backend ESLint and OpenAPI validation. The GitHub workflow also builds both Docker images but does not deploy or approve a release.
+- Run backend integration tests against a separate `_test` database, Angular tests/build, backend ESLint and OpenAPI validation. The Verify workflow builds and publishes images; the separate, manually triggered Deploy workflow deploys them to the configured Ubuntu ARM64 VM. Neither workflow substitutes for production release approval.
 - Rehearse a fresh-machine setup and an actual production HTTPS cookie/CSRF check. Confirm there are no demo credentials in the public environment. Do not treat local verification as team approval or a production readiness certification.
