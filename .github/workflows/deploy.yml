@@ -17,8 +17,8 @@ jobs:
     # Run manually from main, after Verify AND Publish succeed for this commit.
     # Never route pull-request jobs to this persistent deployment runner.
     if: github.ref == 'refs/heads/main'
-    runs-on: [self-hosted, linux, ARM64, homefinder-deploy]
-    environment: vm-demo
+    runs-on: [self-hosted, linux, ARM64, home-finder-deploy]
+    environment: production-vm
     timeout-minutes: 20
     defaults:
       run:
