@@ -13,8 +13,7 @@ flowchart LR
 
 Only server.js starts listening. Tests create an app with an isolated PostgreSQL
 schema. Image files are served through authorized API reads, never a public
-static directory. M5 still needs to supply deployment proxy/container/volume
-configuration and test durable data across container restarts.
+static directory.Docker Compose now provides the Caddy reverse proxy, application services, database migrations and persistent volumes for PostgreSQL and uploaded images. Local container restart persistence has been verified. Public production hosting and off-site disaster recovery still require verification.
 
 M4 viewing/community routers use the same session and role middleware. Viewing
 decisions lock the request; new requests lock and recheck the property and owner.
