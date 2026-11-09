@@ -167,7 +167,7 @@ Set up PostgreSQL separately and configure the backend with the agreed local env
 **Option B — Docker Compose (after compose.yaml and Dockerfiles exist):**
 
 ```bash
-docker compose up --build
+docker compose --env-file deployment/.env -p homefinder-preview up -d --build
 ```
 
 Do not assume either command works before the required configuration is implemented. The developer who first sets up a workflow must verify it on another member’s computer and update this section with tested commands, URLs, migration/seed commands and troubleshooting tips.
