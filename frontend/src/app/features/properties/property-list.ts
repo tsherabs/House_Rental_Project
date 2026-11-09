@@ -22,7 +22,7 @@ import { PropertyCard } from './property-card';
   styleUrl: './property-list.css',
   template: ` <header class="home-intro">
       <div class="intro-copy">
-        <h1>A new chapter.<br /><em>A place to call home.</em></h1>
+        <h1>Tsherab<br /><em>A place to call home.</em></h1>
         <p>
           From quiet hillside apartments to a home near the heart of the city. Find your space in
           Thimphu.
