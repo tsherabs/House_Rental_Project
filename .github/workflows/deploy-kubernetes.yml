@@ -1,0 +1,63 @@
+name: House Rental CD - Kubernetes VM
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: homefinder-kubernetes-vm
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/kubernetes-test' || github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, linux, ARM64, home-finder-deploy]
+    environment: kubernetes-vm
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Check dedicated VM cluster access
+        run: |
+          set -euo pipefail
+          export KUBECONFIG="$HOME/.kube/homefinder-k3s.yaml"
+          test -r "$KUBECONFIG"
+          echo "KUBECONFIG=$KUBECONFIG" >> "$GITHUB_ENV"
+          kubectl get nodes
+          python3 --version
+          echo "IMAGE_BASE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+          echo "IMAGE_TAG=sha-$GITHUB_SHA" >> "$GITHUB_ENV"
+          echo "MIGRATION_JOB=homefinder-migrate-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_ENV"
+
+      - name: Configure application from the VM-local env file
+        run: |
+          set -euo pipefail
+          kubectl apply -f deployment/kubernetes/namespace.yaml
+          python3 scripts/kubernetes/configure.py "$HOME/house-rental-k8s/.env"
+
+      - name: Migrate, deploy and check the application
+        run: bash scripts/kubernetes/deploy.sh
+
+      - name: Deployment diagnostics
+        if: failure()
+        run: |
+          kubectl -n homefinder-k8s get pods,services,pvc,jobs
+          kubectl -n homefinder-k8s get events --sort-by=.metadata.creationTimestamp | tail -30
+
+      - name: Record deployment
+        run: |
+          {
+            echo '### Kubernetes deployment completed'
+            echo "Commit: $GITHUB_SHA"
+            echo "API: $IMAGE_BASE-api:$IMAGE_TAG"
+            echo "Web: $IMAGE_BASE-web:$IMAGE_TAG"
+            echo 'Open the VM address on port 30080 (the APP_ORIGIN in the Kubernetes env file).'
+          } >> "$GITHUB_STEP_SUMMARY"
