@@ -36,7 +36,7 @@ Use a normal dedicated Linux user. Start the runner using the generated `run.sh`
 command for a demo, or install its service following GitHub's instructions. Keep
 the VM and runner online. Do not commit registration tokens.
 
-Create a GitHub environment named `vm-demo` under Settings → Environments. Restrict
+Create a GitHub environment named `production-vm` under Settings → Environments. Restrict
 its deployment branches to `main` where your plan supports environment rules.
 The workflow additionally checks `main` itself. No custom GHCR password is required:
 it uses the job's temporary GITHUB_TOKEN with packages:read. If a package is private,
